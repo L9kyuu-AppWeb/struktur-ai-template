@@ -7,7 +7,7 @@ define('DB_NAME', 'admin_panel_db');
 
 // Konfigurasi Aplikasi
 define('SITE_NAME', 'AdminPanel');
-define('BASE_URL', 'http://localhost/admin-panel/');
+define('BASE_URL', 'http://localhost/latihan/struktur-ai/');
 define('UPLOAD_PATH', __DIR__ . '/assets/uploads/');
 
 // Konfigurasi Session

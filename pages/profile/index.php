@@ -36,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+
 // Get fresh user data
 $currentUser = getCurrentUser();
 ?>

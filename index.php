@@ -7,7 +7,7 @@ require_once 'includes/db_connect.php';
 require_once 'includes/functions.php';
 
 $page = isset($_GET['page']) ? cleanInput($_GET['page']) : 'dashboard';
-$allowedPages = ['dashboard', 'profile', 'users', 'settings', 'login', 'logout'];
+$allowedPages = ['dashboard', 'profile', 'users', 'settings', 'games', 'login', 'logout'];
 $publicPages   = ['login']; // Halaman yang tidak butuh login
 
 // Validasi halaman
@@ -42,6 +42,9 @@ switch ($page) {
         break;
     case 'settings':
         require_once 'pages/settings/index.php';
+        break;
+    case 'games':
+        require_once 'pages/games/index.php';
         break;
     default:
         echo '<h1>404 - Page Not Found</h1>';

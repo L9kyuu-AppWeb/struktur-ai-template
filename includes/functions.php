@@ -91,3 +91,64 @@ function getAlert() {
     }
     return null;
 }
+
+// Upload game image
+function uploadGameImage($file, $gameId) {
+    if (!isset($file) || $file['error'] !== UPLOAD_ERR_OK) {
+        return false;
+    }
+
+    // Check if uploads directory exists, create if not
+    $uploadDir = UPLOAD_PATH . 'games/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+
+    // Allowed file extensions
+    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+    $fileExtension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+    // Check file type
+    if (!in_array($fileExtension, $allowedExtensions)) {
+        return false;
+    }
+
+    // Check file size (limit to 5MB)
+    if ($file['size'] > 5 * 1024 * 1024) {
+        return false;
+    }
+
+    // Generate unique filename
+    // If game ID is 0 (temporary), use timestamp instead
+    if ($gameId == 0) {
+        $fileName = 'tmp_' . time() . '_' . uniqid() . '.' . $fileExtension;
+    } else {
+        $fileName = $gameId . '_' . time() . '.' . $fileExtension;
+    }
+    $targetPath = $uploadDir . $fileName;
+
+    // Resize image if needed (optional)
+    if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+        return $fileName;
+    }
+
+    return false;
+}
+
+// Delete game image
+function deleteGameImage($imageName) {
+    if (!empty($imageName)) {
+        $imagePath = UPLOAD_PATH . 'games/' . $imageName;
+        if (file_exists($imagePath)) {
+            unlink($imagePath);
+        }
+    }
+}
+
+// Get game image URL
+function getGameImageUrl($imageName) {
+    if (empty($imageName)) {
+        return BASE_URL . 'assets/images/no-image.png'; // Default image if none exists
+    }
+    return BASE_URL . 'assets/uploads/games/' . $imageName;
+}

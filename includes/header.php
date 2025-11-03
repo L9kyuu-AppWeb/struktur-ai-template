@@ -109,5 +109,10 @@ $alert = getAlert();
             const alert = document.getElementById('alert');
             if (alert) alert.remove();
         }
+        
+        // Function to confirm delete actions
+        function confirmDelete(message) {
+            return confirm(message || 'Apakah Anda yakin ingin menghapus data ini?');
+        }
     </script>
     <?php endif; ?>

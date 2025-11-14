@@ -21,36 +21,36 @@ switch ($action) {
         // List users
         $search = isset($_GET['search']) ? cleanInput($_GET['search']) : '';
         $roleFilter = isset($_GET['role']) ? cleanInput($_GET['role']) : '';
-        
+
         $sql = "
-            SELECT u.*, r.role_name 
-            FROM users u 
-            JOIN roles r ON u.role_id = r.id 
+            SELECT u.*, r.role_name
+            FROM users u
+            JOIN roles r ON u.role_id = r.id
             WHERE 1=1
         ";
-        
+
         if ($search) {
             $sql .= " AND (u.username LIKE :search OR u.email LIKE :search OR u.first_name LIKE :search OR u.last_name LIKE :search)";
         }
-        
+
         if ($roleFilter) {
             $sql .= " AND r.role_name = :role";
         }
-        
+
         $sql .= " ORDER BY u.created_at DESC";
-        
+
         $stmt = $pdo->prepare($sql);
-        
+
         if ($search) {
             $stmt->bindValue(':search', "%$search%");
         }
         if ($roleFilter) {
             $stmt->bindValue(':role', $roleFilter);
         }
-        
+
         $stmt->execute();
         $users = $stmt->fetchAll();
-        
+
         // Get all roles for filter
         $roles = $pdo->query("SELECT * FROM roles ORDER BY role_name")->fetchAll();
 ?>
@@ -75,8 +75,8 @@ switch ($action) {
     <form method="GET" class="flex flex-col md:flex-row gap-3">
         <input type="hidden" name="page" value="users">
         <div class="flex-1">
-            <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" 
-                   placeholder="Cari username, email, atau nama..." 
+            <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
+                   placeholder="Cari username, email, atau nama..."
                    class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none">
         </div>
         <select name="role" class="px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none">
@@ -127,10 +127,10 @@ switch ($action) {
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600"><?php echo htmlspecialchars($user['email']); ?></td>
                         <td class="px-6 py-4">
-                            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full 
-                                <?php 
-                                    echo $user['role_name'] === 'admin' ? 'bg-purple-100 text-purple-700' : 
-                                        ($user['role_name'] === 'manager' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'); 
+                            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full
+                                <?php
+                                    echo $user['role_name'] === 'admin' ? 'bg-purple-100 text-purple-700' :
+                                        ($user['role_name'] === 'manager' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700');
                                 ?>">
                                 <?php echo ucfirst($user['role_name']); ?>
                             </span>
@@ -155,15 +155,14 @@ switch ($action) {
                         <td class="px-6 py-4 text-sm text-gray-600"><?php echo date('d M Y', strtotime($user['created_at'])); ?></td>
                         <td class="px-6 py-4">
                             <div class="flex items-center space-x-2">
-                                <a href="index.php?page=users&action=edit&id=<?php echo $user['id']; ?>" 
+                                <a href="index.php?page=users&action=edit&id=<?php echo $user['id']; ?>"
                                    class="text-blue-600 hover:text-blue-800 transition-colors" title="Edit">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
                                 </a>
                                 <?php if (hasRole('admin') && $user['id'] != $_SESSION['user_id']): ?>
-                                <a href="index.php?page=users&action=delete&id=<?php echo $user['id']; ?>" 
-                                   onclick="return confirmDelete('Apakah Anda yakin ingin menghapus user <?php echo htmlspecialchars($user['username']); ?>?')"
+                                <a href="index.php?page=users&action=delete&id=<?php echo $user['id']; ?>"
                                    class="text-red-600 hover:text-red-800 transition-colors" title="Hapus">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>

@@ -7,28 +7,36 @@ $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = cleanInput($_POST['username']);
-    $password = $_POST['password'];
+    $password = cleanInput($_POST['password']);
+    $captcha_input = cleanInput($_POST['captcha']);
+    $captcha_session = $_SESSION['captcha'] ?? '';
     
-    if (empty($username) || empty($password)) {
-        $error = 'Username dan password harus diisi!';
+    // Validate CAPTCHA
+    if (strtolower(trim($captcha_input)) !== strtolower(trim($captcha_session))) {
+        $error = 'CAPTCHA tidak valid!';
+    } elseif (empty($username) || empty($password) || empty($captcha_input)) {
+        $error = 'Username, password, dan CAPTCHA harus diisi!';
     } else {
         $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
         $stmt->execute([$username, $username]);
         $user = $stmt->fetch();
-        
+
         if ($user && password_verify($password, $user['password'])) {
             if ($user['is_active'] == 1) {
                 // Set session
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['last_activity'] = time();
-                
+
                 // Update last login
                 $stmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
                 $stmt->execute([$user['id']]);
-                
+
                 // Log activity
                 logActivity($user['id'], 'login', 'User logged in');
+
+                // Clear CAPTCHA session
+                unset($_SESSION['captcha']);
                 
                 redirect('index.php?page=dashboard');
             } else {
@@ -39,6 +47,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+// Generate CAPTCHA values
+$num1 = rand(1, 20);
+$num2 = rand(1, 20);
+$operation = rand(0, 1); // 0 for addition, 1 for subtraction
+$operation_symbol = $operation === 0 ? '+' : '-';
+$answer = $operation === 0 ? $num1 + $num2 : $num1 - $num2;
+
+// Store correct answer in session
+$_SESSION['captcha'] = $answer;
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -80,19 +98,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form method="POST" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Username atau Email</label>
-                    <input type="text" name="username" required 
+                    <input type="text" name="username" required
                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                            placeholder="Masukkan username atau email">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                    <input type="password" name="password" required 
+                    <input type="password" name="password" required
                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                            placeholder="Masukkan password">
                 </div>
 
-                <button type="submit" 
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">CAPTCHA</label>
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-1 flex items-center justify-center bg-gray-100 rounded-xl h-12 border border-gray-200 font-bold text-lg text-gray-800">
+                            <?php echo "$num1 $operation_symbol $num2 = ?"; ?>
+                        </div>
+                        <input type="text" name="captcha" required
+                               class="flex-[0.7] px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                               placeholder="Jawaban">
+                    </div>
+                    <p class="mt-2 text-xs text-gray-500">Masukkan hasil dari perhitungan di atas</p>
+                </div>
+
+                <button type="submit"
                         class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors">
                     Masuk
                 </button>
@@ -103,5 +134,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
     </div>
+
+    <script>
+        // Function to refresh CAPTCHA
+        function refreshCaptcha() {
+            location.reload();
+        }
+    </script>
 </body>
 </html>

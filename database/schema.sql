@@ -50,8 +50,8 @@ CREATE TABLE IF NOT EXISTS users (
 -- Insert default admin user
 -- Username: admin
 -- Password: admin123
-INSERT INTO users (username, email, password, first_name, last_name, role_id, is_active) VALUES
-('admin', 'admin@example.com', '$2y$10$vuT0T56.1nqR1mzWBGKKH.lILeAA7EvUjyBTnBmaCVwuixoZgfKqy', 'Admin', 'User', 1, 1);
+INSERT INTO users (username, email, password, first_name, last_name, phone, role_id, is_active) VALUES
+('admin', 'mail.latif09@gmail.com', '$2y$10$vuT0T56.1nqR1mzWBGKKH.lILeAA7EvUjyBTnBmaCVwuixoZgfKqy', 'Admin', 'User','+62 895-3895-71188', 1, 1);
 
 -- Insert sample users for testing
 INSERT INTO users (username, email, password, first_name, last_name, phone, role_id, is_active) VALUES

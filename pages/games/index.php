@@ -23,6 +23,41 @@ switch ($action) {
         $genreFilter = isset($_GET['genre']) ? cleanInput($_GET['genre']) : '';
         $platformFilter = isset($_GET['platform']) ? cleanInput($_GET['platform']) : '';
 
+        // Pagination setup
+        $currentPage = isset($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
+        $itemsPerPage = 10;
+        $offset = ($currentPage - 1) * $itemsPerPage;
+
+        // Count total records with filters
+        $countSql = "SELECT COUNT(*) FROM games WHERE 1=1";
+        if ($search) {
+            $countSql .= " AND (title LIKE :search1 OR description LIKE :search2 OR genre LIKE :search3 OR platform LIKE :search4)";
+        }
+        if ($genreFilter) {
+            $countSql .= " AND genre = :genre";
+        }
+        if ($platformFilter) {
+            $countSql .= " AND platform = :platform";
+        }
+
+        $countStmt = $pdo->prepare($countSql);
+        if ($search) {
+            $countStmt->bindValue(':search1', "%$search%");
+            $countStmt->bindValue(':search2', "%$search%");
+            $countStmt->bindValue(':search3', "%$search%");
+            $countStmt->bindValue(':search4', "%$search%");
+        }
+        if ($genreFilter) {
+            $countStmt->bindValue(':genre', $genreFilter);
+        }
+        if ($platformFilter) {
+            $countStmt->bindValue(':platform', $platformFilter);
+        }
+        $countStmt->execute();
+        $totalRecords = $countStmt->fetchColumn();
+        $totalPages = ceil($totalRecords / $itemsPerPage);
+
+        // Main query with pagination
         $sql = "SELECT * FROM games WHERE 1=1";
 
         if ($search) {
@@ -37,7 +72,7 @@ switch ($action) {
             $sql .= " AND platform = :platform";
         }
 
-        $sql .= " ORDER BY created_at DESC";
+        $sql .= " ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
 
         $stmt = $pdo->prepare($sql);
 
@@ -53,6 +88,8 @@ switch ($action) {
         if ($platformFilter) {
             $stmt->bindValue(':platform', $platformFilter);
         }
+        $stmt->bindValue(':limit', $itemsPerPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 
         $stmt->execute();
         $games = $stmt->fetchAll();
@@ -114,14 +151,14 @@ switch ($action) {
 </div>
 
 <!-- Games Card View -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="grid grid-cols-1 gap-6">
     <?php if (count($games) > 0): ?>
         <?php foreach ($games as $game): ?>
             <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow">
                 <!-- Game Image -->
                 <div class="relative">
-                    <img src="<?php echo getImageUrl($game['image'], 'games'); ?>" 
-                         class="w-full h-48 object-cover" 
+                    <img src="<?php echo getImageUrl($game['image'], 'games'); ?>"
+                         class="w-full h-48 object-cover"
                          alt="<?php echo htmlspecialchars($game['title']); ?>">
                     <div class="absolute top-3 right-3">
                         <?php if ($game['is_active']): ?>
@@ -141,7 +178,7 @@ switch ($action) {
                         <?php endif; ?>
                     </div>
                 </div>
-                
+
                 <!-- Game Content -->
                 <div class="p-5">
                     <div class="mb-3">
@@ -150,7 +187,7 @@ switch ($action) {
                             <?php echo htmlspecialchars(substr($game['description'], 0, 100)) . (strlen($game['description']) > 100 ? '...' : ''); ?>
                         </p>
                     </div>
-                    
+
                     <div class="grid grid-cols-2 gap-3 mb-4">
                         <div>
                             <p class="text-xs text-gray-500">Genre</p>
@@ -161,10 +198,10 @@ switch ($action) {
                             <p class="font-medium"><?php echo htmlspecialchars($game['platform']); ?></p>
                         </div>
                     </div>
-                    
+
                     <div class="flex justify-between items-center">
                         <span class="text-lg font-bold text-gray-800">Rp <?php echo number_format($game['price'], 2); ?></span>
-                        
+
                         <div class="flex space-x-2">
                             <a href="index.php?page=games&action=edit&id=<?php echo $game['id']; ?>"
                                class="text-blue-600 hover:text-blue-800 transition-colors" title="Edit">
@@ -193,6 +230,67 @@ switch ($action) {
         </div>
     <?php endif; ?>
 </div>
+
+<!-- Pagination -->
+<?php if ($totalPages > 1): ?>
+    <div class="flex justify-center mt-8">
+        <nav class="flex items-center space-x-2">
+            <?php if ($currentPage > 1): ?>
+                <a href="?page=games<?php echo $search ? '&search=' . urlencode($search) : ''; ?><?php echo $genreFilter ? '&genre=' . urlencode($genreFilter) : ''; ?><?php echo $platformFilter ? '&platform=' . urlencode($platformFilter) : ''; ?>&page_num=<?php echo $currentPage - 1; ?>"
+                   class="px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100">
+                    <span>Sebelumnya</span>
+                </a>
+            <?php endif; ?>
+
+            <?php
+            // Calculate pagination range to show
+            $start = max(1, $currentPage - 2);
+            $end = min($totalPages, $currentPage + 2);
+            ?>
+
+            <?php if ($start > 1): ?>
+                <a href="?page=games<?php echo $search ? '&search=' . urlencode($search) : ''; ?><?php echo $genreFilter ? '&genre=' . urlencode($genreFilter) : ''; ?><?php echo $platformFilter ? '&platform=' . urlencode($platformFilter) : ''; ?>&page_num=1"
+                   class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100">
+                    1
+                </a>
+                <?php if ($start > 2): ?>
+                    <span class="px-4 py-2 text-sm font-medium text-gray-500">...</span>
+                <?php endif; ?>
+            <?php endif; ?>
+
+            <?php for ($i = $start; $i <= $end; $i++): ?>
+                <a href="?page=games<?php echo $search ? '&search=' . urlencode($search) : ''; ?><?php echo $genreFilter ? '&genre=' . urlencode($genreFilter) : ''; ?><?php echo $platformFilter ? '&platform=' . urlencode($platformFilter) : ''; ?>&page_num=<?php echo $i; ?>"
+                   class="px-4 py-2 text-sm font-medium <?php echo $i == $currentPage ? 'bg-blue-600 text-white' : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-100'; ?> rounded-lg">
+                    <?php echo $i; ?>
+                </a>
+            <?php endfor; ?>
+
+            <?php if ($end < $totalPages): ?>
+                <?php if ($end < $totalPages - 1): ?>
+                    <span class="px-4 py-2 text-sm font-medium text-gray-500">...</span>
+                <?php endif; ?>
+                <a href="?page=games<?php echo $search ? '&search=' . urlencode($search) : ''; ?><?php echo $genreFilter ? '&genre=' . urlencode($genreFilter) : ''; ?><?php echo $platformFilter ? '&platform=' . urlencode($platformFilter) : ''; ?>&page_num=<?php echo $totalPages; ?>"
+                   class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100">
+                    <?php echo $totalPages; ?>
+                </a>
+            <?php endif; ?>
+
+            <?php if ($currentPage < $totalPages): ?>
+                <a href="?page=games<?php echo $search ? '&search=' . urlencode($search) : ''; ?><?php echo $genreFilter ? '&genre=' . urlencode($genreFilter) : ''; ?><?php echo $platformFilter ? '&platform=' . urlencode($platformFilter) : ''; ?>&page_num=<?php echo $currentPage + 1; ?>"
+                   class="px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100">
+                    <span>Selanjutnya</span>
+                </a>
+            <?php endif; ?>
+        </nav>
+    </div>
+<?php endif; ?>
+
+<!-- Records info -->
+<?php if ($totalRecords > 0): ?>
+    <div class="text-center mt-4 text-gray-500">
+        Menampilkan <?php echo $offset + 1; ?>-<?php echo min($offset + $itemsPerPage, $totalRecords); ?> dari <?php echo $totalRecords; ?> data
+    </div>
+<?php endif; ?>
 
 <?php
         break;

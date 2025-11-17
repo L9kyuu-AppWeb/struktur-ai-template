@@ -112,12 +112,12 @@ $_SESSION['captcha'] = $answer;
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">CAPTCHA</label>
-                    <div class="flex items-center space-x-3">
-                        <div class="flex-1 flex items-center justify-center bg-gray-100 rounded-xl h-12 border border-gray-200 font-bold text-lg text-gray-800">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <div class="flex-1 flex items-center justify-center bg-gray-100 rounded-xl h-12 border border-gray-200 font-bold text-lg text-gray-800 min-h-[48px]">
                             <?php echo "$num1 $operation_symbol $num2 = ?"; ?>
                         </div>
                         <input type="text" name="captcha" required
-                               class="flex-[0.7] px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                               class="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition flex-1 min-w-[150px]"
                                placeholder="Jawaban">
                     </div>
                     <p class="mt-2 text-xs text-gray-500">Masukkan hasil dari perhitungan di atas</p>

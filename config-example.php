@@ -1,7 +1,7 @@
 <?php
 // Konfigurasi Database
 define('DB_HOST', 'localhost');
-define('DB_USER', 'masukkan_user_db_anda');         // Ganti dengan user database Anda
+define('DB_USER', 'root');         // Ganti dengan user database Anda
 define('DB_PASS', 'masukkan_password_db_anda');     // Ganti dengan password database Anda
 define('DB_NAME', 'masukkan_nama_db_anda');         // Ganti dengan nama database Anda
 

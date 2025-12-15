@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS roles (
     role_name VARCHAR(50) NOT NULL UNIQUE,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 -- Insert default roles
 INSERT INTO roles (role_name, description) VALUES
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_username (username),
     INDEX idx_email (email),
     INDEX idx_role_id (role_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 -- Insert default admin user
 -- Username: admin
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS activity_logs (
     INDEX idx_user_id (user_id),
     INDEX idx_activity_type (activity_type),
     INDEX idx_created_at (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 -- Insert sample activity logs
 INSERT INTO activity_logs (user_id, activity_type, description, ip_address) VALUES
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_session_token (session_token),
     INDEX idx_user_id (user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 -- ==========================================
 -- Views for easy data access

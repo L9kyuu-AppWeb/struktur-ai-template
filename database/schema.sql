@@ -207,6 +207,21 @@ CREATE INDEX idx_activity_user_date ON activity_logs(user_id, created_at);
 -- Database information
 -- ==========================================
 
+-- ==========================================
+-- ALTER statements for additional features
+-- ==========================================
+
+-- Add table for login attempt limiting
+CREATE TABLE IF NOT EXISTS failed_login_attempts (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    ip_address VARCHAR(45) NOT NULL,
+    username VARCHAR(50),
+    attempt_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_ip_address (ip_address),
+    INDEX idx_username (username),
+    INDEX idx_attempt_time (attempt_time)
+);
+
 SELECT 'Database created successfully!' as message;
 SELECT 'Default admin credentials:' as info, 'Username: admin, Password: admin123' as credentials;
 SELECT 'Total tables created:' as info, COUNT(*) as count FROM information_schema.tables WHERE table_schema = 'admin_panel_db';

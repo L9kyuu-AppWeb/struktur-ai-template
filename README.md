@@ -1,8 +1,8 @@
-# Struktur-AI - Admin Panel & Game Management System
+# Struktur-AI-Template - L9kyuuPanel
 
 ## 📋 Deskripsi Proyek
 
-Template repository untuk sistem admin panel dengan manajemen game. Proyek ini menyediakan struktur dasar untuk sistem manajemen pengguna dan game dengan otentikasi serta sistem otorisasi.
+Template repository L9kyuuPanel merupakan fondasi admin panel untuk manajemen game yang dilengkapi dengan sistem autentikasi dan otorisasi pengguna. Template ini dirancang untuk memudahkan pengelolaan dan pengembangan proyek, serta menyediakan contoh implementasi CRUD pada modul Games yang dapat dijadikan acuan dalam pembuatan modul-modul lainnya.
 
 ## 🚀 Instalasi
 
@@ -15,7 +15,7 @@ Template repository untuk sistem admin panel dengan manajemen game. Proyek ini m
 
 1. **Clone repository atau gunakan sebagai template**
    ```
-   git clone https://github.com/username/struktur-ai.git
+   git clone https://github.com/username/struktur-ai-template.git
    # Atau gunakan tombol "Use this template" di GitHub
    ```
 
@@ -30,7 +30,7 @@ Template repository untuk sistem admin panel dengan manajemen game. Proyek ini m
      -- Password: admin123
 
 3. **Konfigurasi Aplikasi**
-   - Buka file `config.php`
+   - Salin file `config-example.php` menjadi `config.php`
    - Sesuaikan konfigurasi database:
      ```php
      define('DB_HOST', 'localhost');        // Host database
@@ -40,11 +40,11 @@ Template repository untuk sistem admin panel dengan manajemen game. Proyek ini m
      ```
    - Atur BASE_URL sesuai dengan lokasi proyek Anda:
      ```php
-     define('BASE_URL', 'http://localhost/latihan/struktur-ai/');
+     define('BASE_URL', 'http://localhost/latihan/struktur-ai-template/');
      ```
 
 4. **Struktur Folder**
-   - Buat folder `assets/uploads/avatars/` dan pastikan web server memiliki izin untuk menulis di folder ini
+   - Buat folder `assets/uploads/avatars/` jika belum ada dan pastikan web server memiliki izin untuk menulis di folder ini
 
 5. **Akses Aplikasi**
    - Buka browser dan akses URL proyek
@@ -56,10 +56,10 @@ Template repository untuk sistem admin panel dengan manajemen game. Proyek ini m
 ## 📁 Struktur Folder
 
 ```
-struktur-ai/
+struktur-ai-template/
 │
 ├── index.php                      # Entry point aplikasi
-├── config.php                     # Konfigurasi database & konstanta
+├── config-example.php             # Contoh konfigurasi database
 ├── README.md                      # Dokumentasi proyek
 │
 ├── includes/
@@ -87,7 +87,18 @@ struktur-ai/
 │   │   ├── index.php              # List games
 │   │   ├── create.php             # Create game
 │   │   ├── edit.php               # Edit game
-│   │   └── delete.php             # Delete game
+│   │   ├── delete.php             # Delete game
+│   │   └── reports/
+│   │       ├── index.php          # Game reports
+│   │       └── export/
+│   │           ├── excel.php      # Export to Excel
+│   │           └── pdf.php        # Export to PDF
+│   │
+│   ├── roles/
+│   │   ├── index.php              # List roles
+│   │   ├── create.php             # Create role
+│   │   ├── edit.php               # Edit role
+│   │   └── delete.php             # Delete role
 │   │
 │   ├── settings/
 │   │   └── index.php              # Settings
@@ -97,11 +108,9 @@ struktur-ai/
 │   │   └── logout.php             # Logout
 │   │
 │   └── errors/
-│       └── 403.php                # Access Denied
+│       └── 404.php                # Page Not Found
 │
 ├── assets/
-│   ├── css/
-│   ├── js/
 │   ├── images/
 │   └── uploads/
 │       └── avatars/

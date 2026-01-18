@@ -79,9 +79,7 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 INSERT INTO activity_logs (user_id, activity_type, description, ip_address) VALUES
 (1, 'login', 'User logged in', '127.0.0.1'),
 (1, 'create_user', 'Created new user: manager1', '127.0.0.1'),
-(1, 'update_profile', 'User updated profile information', '127.0.0.1'),
-(2, 'login', 'User logged in', '127.0.0.1'),
-(3, 'login', 'User logged in', '127.0.0.1');
+(1, 'update_profile', 'User updated profile information', '127.0.0.1');
 
 -- ==========================================
 -- OPTIONAL: Additional useful tables

@@ -341,8 +341,17 @@ switch ($reportType) {
 ?>
 
 <div class="mb-6">
-    <h1 class="text-3xl font-bold text-gray-800">Game Reports</h1>
-    <p class="text-gray-500 mt-1">Generate and view reports about your game collection</p>
+    <div class="flex items-center space-x-4 mb-4">
+        <a href="index.php?page=games" class="text-gray-600 hover:text-gray-800">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">Game Reports</h1>
+            <p class="text-gray-500 mt-1">Generate and view reports about your game collection</p>
+        </div>
+    </div>
 </div>
 
 <!-- Report Type Selector -->

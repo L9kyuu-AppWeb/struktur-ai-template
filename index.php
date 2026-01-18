@@ -62,9 +62,12 @@ $pageContent = ob_get_clean(); // Simpan content
 if (!in_array($page, $publicPages)) {
     require_once 'includes/header.php';
     require_once 'includes/sidebar.php';
-    echo '<main class="lg:ml-64 pt-16 min-h-screen flex flex-col"><div class="p-6 flex-1">';
+    echo '<div class="lg:ml-64 pt-16 min-h-screen flex flex-col">';
+    echo '<main class="flex-1">';
+    echo '<div class="p-6 flex-1 min-h-0">';
     echo $pageContent; // Output content yang sudah di-buffer
     echo '</div>';
+    echo '</main>';
     require_once 'includes/footer.php';
 } else {
     // Untuk public pages (login), langsung output

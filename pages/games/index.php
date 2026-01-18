@@ -17,6 +17,9 @@ switch ($action) {
     case 'delete':
         require_once 'delete.php';
         break;
+    case 'reports':
+        require_once 'reports/index.php';
+        break;
     default:
         // List games
         $search = isset($_GET['search']) ? cleanInput($_GET['search']) : '';
@@ -37,7 +40,7 @@ switch ($action) {
             $countSql .= " AND genre = :genre";
         }
         if ($platformFilter) {
-            $countSql .= " AND platform = :platform";
+            $countSql .= " AND platform LIKE :platform";
         }
 
         $countStmt = $pdo->prepare($countSql);
@@ -51,7 +54,7 @@ switch ($action) {
             $countStmt->bindValue(':genre', $genreFilter);
         }
         if ($platformFilter) {
-            $countStmt->bindValue(':platform', $platformFilter);
+            $countStmt->bindValue(':platform', '%' . $platformFilter . '%');
         }
         $countStmt->execute();
         $totalRecords = $countStmt->fetchColumn();
@@ -69,7 +72,7 @@ switch ($action) {
         }
 
         if ($platformFilter) {
-            $sql .= " AND platform = :platform";
+            $sql .= " AND platform LIKE :platform";
         }
 
         $sql .= " ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
@@ -86,7 +89,7 @@ switch ($action) {
             $stmt->bindValue(':genre', $genreFilter);
         }
         if ($platformFilter) {
-            $stmt->bindValue(':platform', $platformFilter);
+            $stmt->bindValue(':platform', '%' . $platformFilter . '%');
         }
         $stmt->bindValue(':limit', $itemsPerPage, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
@@ -96,7 +99,26 @@ switch ($action) {
 
         // Get distinct genres and platforms for filter
         $genres = $pdo->query("SELECT DISTINCT genre FROM games WHERE genre IS NOT NULL ORDER BY genre")->fetchAll();
-        $platforms = $pdo->query("SELECT DISTINCT platform FROM games WHERE platform IS NOT NULL ORDER BY platform")->fetchAll();
+
+        // Get all platforms and split comma-separated values
+        $allPlatformsResult = $pdo->query("SELECT platform FROM games WHERE platform IS NOT NULL")->fetchAll(PDO::FETCH_COLUMN);
+        $uniquePlatforms = [];
+
+        foreach ($allPlatformsResult as $platformString) {
+            $individualPlatforms = explode(',', $platformString);
+            foreach ($individualPlatforms as $platform) {
+                $platform = trim($platform);
+                if (!empty($platform) && !in_array($platform, $uniquePlatforms)) {
+                    $uniquePlatforms[] = $platform;
+                }
+            }
+        }
+        sort($uniquePlatforms);
+
+        // Format for use in the template
+        $platforms = array_map(function($platform) {
+            return ['platform' => $platform];
+        }, $uniquePlatforms);
 ?>
 
 <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -104,14 +126,22 @@ switch ($action) {
         <h1 class="text-3xl font-bold text-gray-800">Game Management</h1>
         <p class="text-gray-500 mt-1">Kelola koleksi game</p>
     </div>
-    <?php if (hasRole(['admin', 'manager'])): ?>
-    <a href="index.php?page=games&action=create" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-xl transition-colors inline-flex items-center space-x-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-        <span>Tambah Game</span>
-    </a>
-    <?php endif; ?>
+    <div class="flex flex-wrap gap-3">
+        <?php if (hasRole(['admin', 'manager'])): ?>
+        <a href="index.php?page=games&action=reports" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-6 rounded-xl transition-colors inline-flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <span>Reports</span>
+        </a>
+        <a href="index.php?page=games&action=create" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-xl transition-colors inline-flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span>Tambah Game</span>
+        </a>
+        <?php endif; ?>
+    </div>
 </div>
 
 <!-- Search & Filter -->

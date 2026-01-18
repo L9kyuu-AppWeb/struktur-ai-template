@@ -1,7 +1,7 @@
 </main>
 
 <!-- Footer -->
-<footer class="lg:ml-64 bg-white border-t">
+<footer class="bg-white border-t">
     <div class="px-6 py-6">
         <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div class="flex items-center space-x-2">

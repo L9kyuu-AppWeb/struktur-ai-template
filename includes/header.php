@@ -116,3 +116,5 @@ $alert = getAlert();
         }
     </script>
     <?php endif; ?>
+</body>
+</html>

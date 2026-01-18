@@ -12,7 +12,15 @@
                 </div>
                 <div>
                     <p class="text-sm font-semibold text-gray-800"><?php echo SITE_NAME; ?></p>
-                    <p class="text-xs text-gray-500">© <?php echo date('Y'); ?> All rights reserved</p>
+                    <p class="text-xs text-gray-500">© <?php
+                        $currentYear = date('Y');
+                        $startYear = COPYRIGHT_START_YEAR;
+                        if ($currentYear == $startYear) {
+                            echo $currentYear;
+                        } else {
+                            echo $startYear . '-' . $currentYear;
+                        }
+                    ?> All rights reserved</p>
                 </div>
             </div>
 

@@ -25,18 +25,37 @@ $reportType = isset($reportType) ? $reportType : (isset($_GET['type']) ? cleanIn
 $startDate = isset($startDate) ? $startDate : (isset($_GET['start_date']) ? cleanInput($_GET['start_date']) : date('Y-m-01'));
 $endDate = isset($endDate) ? $endDate : (isset($_GET['end_date']) ? cleanInput($_GET['end_date']) : date('Y-m-d'));
 
+// Function to get Indonesian report type name
+function getIndonesianReportTypeName($type) {
+    switch ($type) {
+        case 'sales':
+            return 'Ringkasan Penjualan (Sales)';
+        case 'inventory':
+            return 'Ringkasan Inventaris (Inventory)';
+        case 'popularity':
+            return 'Ringkasan Popularitas (Popularity)';
+        case 'overview':
+        default:
+            return 'Ringkasan Umum (Overview)';
+    }
+}
+
 // Generate HTML content for the PDF
 $html = '
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Games Summary Report</title>
+    <title>Laporan Ringkasan Data Game</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .title { font-size: 24px; font-weight: bold; color: #333; }
-        .subtitle { font-size: 16px; color: #666; margin-bottom: 30px; }
+        body { font-family: Arial, sans-serif; margin: 32px; }
+        .header { text-align: left; margin-bottom: 24px; }
+        .company-header { display: flex; align-items: center; margin-bottom: 16px; }
+        .company-logo { margin-right: 12px; max-height: 48px; width: auto; }
+        .company-name { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 0; }
+        .title { font-size: 26px; font-weight: bold; color: #333; line-height: 1.3; margin-bottom: 12px; }
+        .subtitle { font-size: 14px; color: #555; margin-bottom: 8px; }
+        .report-type { font-size: 13px; font-weight: medium; color: #666; margin-bottom: 32px; }
         .section { margin-bottom: 20px; }
         .section-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 10px; }
         .stats-container { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
@@ -52,9 +71,13 @@ $html = '
 </head>
 <body>
     <div class="header">
-        <div class="title">Games Summary Report</div>
-        <div class="subtitle">Period: ' . $startDate . ' to ' . $endDate . '</div>
-        <div class="subtitle">Report Type: ' . ucfirst($reportType) . '</div>
+        <div class="company-header">
+            <img src="' . COMPANY_ICON_PATH . '" alt="Logo Perusahaan" class="company-logo" onerror="this.style.display=\'none\'">
+            <div class="company-name">' . COMPANY_NAME . '</div>
+        </div>
+        <div class="title">Laporan Ringkasan Data Game</div>
+        <div class="subtitle">Periode: ' . date('j F Y', strtotime($startDate)) . ' – ' . date('j F Y', strtotime($endDate)) . '</div>
+        <div class="report-type">Jenis Laporan: ' . getIndonesianReportTypeName($reportType) . '</div>
     </div>';
 
 // Add content based on report type
@@ -76,59 +99,59 @@ switch ($reportType) {
         
         $html .= '
         <div class="section">
-            <div class="section-title">Sales Summary</div>
+            <div class="section-title">Ringkasan Penjualan Data Game</div>
             <div class="stats-container">
                 <div class="stat-card">
                     <div class="stat-number">' . $stats['total_games'] . '</div>
-                    <div class="stat-label">Total Games</div>
+                    <div class="stat-label">Total Data Game</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">' . $stats['active_games'] . '</div>
-                    <div class="stat-label">Active Games</div>
+                    <div class="stat-label">Data Game Aktif</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">Rp ' . number_format($stats['avg_price'], 2) . '</div>
-                    <div class="stat-label">Average Price</div>
+                    <div class="stat-label">Harga Rata-rata</div>
                 </div>
             </div>
         </div>
-        
+
         <div class="section">
-            <div class="section-title">Price Range</div>
+            <div class="section-title">Rentang Harga</div>
             <div class="stats-container">
                 <div class="stat-card">
                     <div class="stat-number">Rp ' . number_format($stats['min_price'], 2) . '</div>
-                    <div class="stat-label">Minimum Price</div>
+                    <div class="stat-label">Harga Minimum</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">Rp ' . number_format($stats['avg_price'], 2) . '</div>
-                    <div class="stat-label">Average Price</div>
+                    <div class="stat-label">Harga Rata-rata</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">Rp ' . number_format($stats['max_price'], 2) . '</div>
-                    <div class="stat-label">Maximum Price</div>
+                    <div class="stat-label">Harga Maksimum</div>
                 </div>
             </div>
         </div>';
-        
+
         // Add top games by price
-        $topGamesSql = "SELECT id, title, price, genre, platform, is_active 
-                       FROM games 
-                       ORDER BY price DESC 
+        $topGamesSql = "SELECT id, title, price, genre, platform, is_active
+                       FROM games
+                       ORDER BY price DESC
                        LIMIT 10";
         $topGamesStmt = $pdo->prepare($topGamesSql);
         $topGamesStmt->execute();
         $topGames = $topGamesStmt->fetchAll();
-        
+
         $html .= '
         <div class="section">
-            <div class="section-title">Top 10 Highest Priced Games</div>
+            <div class="section-title">10 Data Game dengan Harga Tertinggi</div>
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Title</th>
-                        <th>Price</th>
+                        <th>Nama Data</th>
+                        <th>Harga</th>
                         <th>Genre</th>
                         <th>Platform</th>
                         <th>Status</th>
@@ -143,7 +166,7 @@ switch ($reportType) {
                     <td>Rp ' . number_format($game['price'], 2) . '</td>
                     <td>' . htmlspecialchars($game['genre']) . '</td>
                     <td>' . htmlspecialchars($game['platform']) . '</td>
-                    <td>' . ($game['is_active'] ? 'Active' : 'Inactive') . '</td>
+                    <td>' . ($game['is_active'] ? 'Aktif' : 'Tidak Aktif') . '</td>
                 </tr>';
         }
         $html .= '
@@ -171,46 +194,46 @@ switch ($reportType) {
         
         $html .= '
         <div class="section">
-            <div class="section-title">Inventory Summary</div>
+            <div class="section-title">Ringkasan Inventaris Data Game</div>
             <div class="stats-container">
                 <div class="stat-card">
                     <div class="stat-number">' . $stats['total_games'] . '</div>
-                    <div class="stat-label">Total Items</div>
+                    <div class="stat-label">Total Data</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">' . $stats['active_games'] . '</div>
-                    <div class="stat-label">Active Items</div>
+                    <div class="stat-label">Data Aktif</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">Rp ' . number_format($stats['avg_price'], 2) . '</div>
-                    <div class="stat-label">Average Value</div>
+                    <div class="stat-label">Nilai Rata-rata</div>
                 </div>
             </div>
         </div>';
-        
+
         // Get genre distribution
-        $genreSql = "SELECT 
+        $genreSql = "SELECT
                         genre,
                         COUNT(*) as count,
                         SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_count
                      FROM games
                      GROUP BY genre
                      ORDER BY count DESC";
-        
+
         $genreStmt = $pdo->prepare($genreSql);
         $genreStmt->execute();
         $genreDistribution = $genreStmt->fetchAll();
-        
+
         $html .= '
         <div class="section">
-            <div class="section-title">Genre Distribution</div>
+            <div class="section-title">Distribusi Genre Data Game</div>
             <table>
                 <thead>
                     <tr>
                         <th>Genre</th>
                         <th>Total</th>
-                        <th>Active</th>
-                        <th>Percentage</th>
+                        <th>Aktif</th>
+                        <th>Persentase</th>
                     </tr>
                 </thead>
                 <tbody>';
@@ -248,23 +271,23 @@ switch ($reportType) {
         
         $html .= '
         <div class="section">
-            <div class="section-title">Popularity Summary</div>
+            <div class="section-title">Ringkasan Popularitas Data Game</div>
             <div class="stats-container">
                 <div class="stat-card">
                     <div class="stat-number">' . $stats['total_games'] . '</div>
-                    <div class="stat-label">Total Games</div>
+                    <div class="stat-label">Total Data Game</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">' . $stats['active_games'] . '</div>
-                    <div class="stat-label">Active Games</div>
+                    <div class="stat-label">Data Game Aktif</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">Rp ' . number_format($stats['avg_price'], 2) . '</div>
-                    <div class="stat-label">Average Price</div>
+                    <div class="stat-label">Harga Rata-rata</div>
                 </div>
             </div>
         </div>';
-        
+
         // Get top genres
         $genreCounts = [];
         $allGamesSql = "SELECT genre FROM games WHERE created_at BETWEEN :start_date AND :end_date";
@@ -273,7 +296,7 @@ switch ($reportType) {
         $allGamesStmt->bindParam(':end_date', $endDate);
         $allGamesStmt->execute();
         $allGames = $allGamesStmt->fetchAll(PDO::FETCH_COLUMN);
-        
+
         foreach ($allGames as $genre) {
             if (!isset($genreCounts[$genre])) {
                 $genreCounts[$genre] = 0;
@@ -282,16 +305,16 @@ switch ($reportType) {
         }
         arsort($genreCounts);
         $topGenres = array_slice($genreCounts, 0, 5, true);
-        
+
         $html .= '
         <div class="section">
-            <div class="section-title">Most Popular Genres</div>
+            <div class="section-title">Genre Paling Populer Data Game</div>
             <table>
                 <thead>
                     <tr>
                         <th>Genre</th>
-                        <th>Count</th>
-                        <th>Percentage</th>
+                        <th>Jumlah</th>
+                        <th>Persentase</th>
                     </tr>
                 </thead>
                 <tbody>';
@@ -328,29 +351,29 @@ switch ($reportType) {
         
         $html .= '
         <div class="section">
-            <div class="section-title">Games Overview</div>
+            <div class="section-title">Gambaran Umum Data Game</div>
             <div class="stats-container">
                 <div class="stat-card">
                     <div class="stat-number">' . $stats['total_games'] . '</div>
-                    <div class="stat-label">Total Games</div>
+                    <div class="stat-label">Total Data Game</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">' . $stats['active_games'] . '</div>
-                    <div class="stat-label">Active Games</div>
+                    <div class="stat-label">Data Game Aktif</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">' . $stats['inactive_games'] . '</div>
-                    <div class="stat-label">Inactive Games</div>
+                    <div class="stat-label">Data Game Tidak Aktif</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">Rp ' . number_format($stats['avg_price'], 2) . '</div>
-                    <div class="stat-label">Average Price</div>
+                    <div class="stat-label">Harga Rata-rata</div>
                 </div>
             </div>
         </div>
-        
+
         <div class="section">
-            <div class="section-title">Price Range</div>
+            <div class="section-title">Rentang Harga</div>
             <div class="stats-container">
                 <div class="stat-card">
                     <div class="stat-number">Rp ' . number_format($stats['min_price'], 2) . '</div>
@@ -358,11 +381,11 @@ switch ($reportType) {
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">Rp ' . number_format($stats['avg_price'], 2) . '</div>
-                    <div class="stat-label">Average</div>
+                    <div class="stat-label">Rata-rata</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">Rp ' . number_format($stats['max_price'], 2) . '</div>
-                    <div class="stat-label">Maximum</div>
+                    <div class="stat-label">Maksimum</div>
                 </div>
             </div>
         </div>';
@@ -424,14 +447,14 @@ switch ($reportType) {
 
         $html .= '
         <div class="section">
-            <div class="section-title">Top Genres</div>
+            <div class="section-title">Genre Teratas</div>
             <table>
                 <thead>
                     <tr>
                         <th>Genre</th>
                         <th>Total</th>
-                        <th>Active</th>
-                        <th>Percentage</th>
+                        <th>Aktif</th>
+                        <th>Persentase</th>
                     </tr>
                 </thead>
                 <tbody>';
@@ -453,14 +476,14 @@ switch ($reportType) {
 
         $html .= '
         <div class="section">
-            <div class="section-title">Platform Distribution</div>
+            <div class="section-title">Distribusi Platform</div>
             <table>
                 <thead>
                     <tr>
                         <th>Platform</th>
                         <th>Total</th>
-                        <th>Active</th>
-                        <th>Percentage</th>
+                        <th>Aktif</th>
+                        <th>Persentase</th>
                     </tr>
                 </thead>
                 <tbody>';
@@ -483,7 +506,7 @@ switch ($reportType) {
 
 $html .= '
     <div class="footer">
-        Generated on ' . date('Y-m-d H:i:s') . ' | L9kyuuPanel Game Reports
+        Dibuat pada ' . date('Y-m-d H:i:s') . ' | Laporan Game ' . COMPANY_NAME . '
     </div>
 </body>
 </html>';

@@ -33,12 +33,29 @@ $alert = getAlert();
                     </svg>
                 </button>
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                    </div>
-                    <span class="text-xl font-bold text-gray-800"><?php echo SITE_NAME; ?></span>
+                    <?php if (defined('COMPANY_ICON_PATH')): ?>
+                        <?php
+                        // Extract the web path and convert to server path to check if file exists
+                        $web_path = COMPANY_ICON_PATH;
+                        $server_path = str_replace(BASE_URL, $_SERVER['DOCUMENT_ROOT'] . '/', $web_path);
+                        ?>
+                        <?php if (file_exists($server_path)): ?>
+                            <img src="<?php echo $web_path; ?>" alt="Logo Perusahaan" class="w-12 h-12 rounded-xl object-contain" onerror="this.style.display='none';">
+                        <?php else: ?>
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                            </div>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                        </div>
+                    <?php endif; ?>
+                    <span class="text-xl font-bold text-gray-800"><?php echo defined('COMPANY_NAME') ? COMPANY_NAME : SITE_NAME; ?></span>
                 </div>
             </div>
             

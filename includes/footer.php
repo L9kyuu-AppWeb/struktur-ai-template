@@ -7,12 +7,11 @@
             <div class="flex items-center space-x-2">
                 <?php if (defined('COMPANY_ICON_PATH')): ?>
                     <?php
-                    // Extract the web path and convert to server path to check if file exists
-                    $web_path = COMPANY_ICON_PATH;
-                    $server_path = str_replace(BASE_URL, $_SERVER['DOCUMENT_ROOT'] . '/', $web_path);
+                    // Check if the specific company icon file exists
+                    $expected_path = __DIR__ . '/../assets/images/company-icon.svg';
                     ?>
-                    <?php if (file_exists($server_path)): ?>
-                        <img src="<?php echo $web_path; ?>" alt="Logo Perusahaan" class="w-10 h-10 rounded-lg object-contain" onerror="this.style.display='none';">
+                    <?php if (file_exists($expected_path)): ?>
+                        <img src="<?php echo COMPANY_ICON_PATH; ?>" alt="Logo Perusahaan" class="w-10 h-10 rounded-lg object-contain" onerror="this.style.display='none';">
                     <?php else: ?>
                         <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
                             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -12,7 +12,7 @@ define('UPLOAD_PATH', __DIR__ . '/assets/uploads/');
 
 // Konfigurasi Perusahaan
 define('COMPANY_NAME', 'L9kyuu Company');           // Nama perusahaan untuk laporan
-define('COMPANY_ICON_PATH', BASE_URL . 'assets/images/company-icon.svg'); // Path ke ikon perusahaan (relatif dari root)
+define('COMPANY_ICON_PATH', BASE_URL . 'assets/images/company-icon.ico'); // Path ke ikon perusahaan (relatif dari root)
 
 // Konfigurasi Copyright
 define('COPYRIGHT_START_YEAR', 2025); // Tahun awal hak cipta

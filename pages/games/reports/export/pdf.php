@@ -84,16 +84,19 @@ $html = '
 switch ($reportType) {
     case 'sales':
         // Get sales data
-        $statsSql = "SELECT 
+        $statsSql = "SELECT
                         COUNT(*) as total_games,
                         SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_games,
                         SUM(CASE WHEN is_active = 0 THEN 1 ELSE 0 END) as inactive_games,
                         AVG(price) as avg_price,
                         MIN(price) as min_price,
                         MAX(price) as max_price
-                     FROM games";
-        
+                     FROM games
+                     WHERE created_at BETWEEN :start_date AND :end_date";
+
         $statsStmt = $pdo->prepare($statsSql);
+        $statsStmt->bindParam(':start_date', $startDate);
+        $statsStmt->bindParam(':end_date', $endDate);
         $statsStmt->execute();
         $stats = $statsStmt->fetch();
         
@@ -110,7 +113,7 @@ switch ($reportType) {
                     <div class="stat-label">Data Game Aktif</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">Rp ' . number_format($stats['avg_price'], 2) . '</div>
+                    <div class="stat-number">Rp ' . number_format($stats['avg_price'] ?? 0, 2) . '</div>
                     <div class="stat-label">Harga Rata-rata</div>
                 </div>
             </div>
@@ -120,15 +123,15 @@ switch ($reportType) {
             <div class="section-title">Rentang Harga</div>
             <div class="stats-container">
                 <div class="stat-card">
-                    <div class="stat-number">Rp ' . number_format($stats['min_price'], 2) . '</div>
+                    <div class="stat-number">Rp ' . number_format($stats['min_price'] ?? 0, 2) . '</div>
                     <div class="stat-label">Harga Minimum</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">Rp ' . number_format($stats['avg_price'], 2) . '</div>
+                    <div class="stat-number">Rp ' . number_format($stats['avg_price'] ?? 0, 2) . '</div>
                     <div class="stat-label">Harga Rata-rata</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">Rp ' . number_format($stats['max_price'], 2) . '</div>
+                    <div class="stat-number">Rp ' . number_format($stats['max_price'] ?? 0, 2) . '</div>
                     <div class="stat-label">Harga Maksimum</div>
                 </div>
             </div>
@@ -137,9 +140,12 @@ switch ($reportType) {
         // Add top games by price
         $topGamesSql = "SELECT id, title, price, genre, platform, is_active
                        FROM games
+                       WHERE created_at BETWEEN :start_date AND :end_date
                        ORDER BY price DESC
                        LIMIT 10";
         $topGamesStmt = $pdo->prepare($topGamesSql);
+        $topGamesStmt->bindParam(':start_date', $startDate);
+        $topGamesStmt->bindParam(':end_date', $endDate);
         $topGamesStmt->execute();
         $topGames = $topGamesStmt->fetchAll();
 
@@ -163,7 +169,7 @@ switch ($reportType) {
                 <tr>
                     <td>' . $game['id'] . '</td>
                     <td>' . htmlspecialchars($game['title']) . '</td>
-                    <td>Rp ' . number_format($game['price'], 2) . '</td>
+                    <td>Rp ' . number_format($game['price'] ?? 0, 2) . '</td>
                     <td>' . htmlspecialchars($game['genre']) . '</td>
                     <td>' . htmlspecialchars($game['platform']) . '</td>
                     <td>' . ($game['is_active'] ? 'Aktif' : 'Tidak Aktif') . '</td>
@@ -205,7 +211,7 @@ switch ($reportType) {
                     <div class="stat-label">Data Aktif</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">Rp ' . number_format($stats['avg_price'], 2) . '</div>
+                    <div class="stat-number">Rp ' . number_format($stats['avg_price'] ?? 0, 2) . '</div>
                     <div class="stat-label">Nilai Rata-rata</div>
                 </div>
             </div>
@@ -282,7 +288,7 @@ switch ($reportType) {
                     <div class="stat-label">Data Game Aktif</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">Rp ' . number_format($stats['avg_price'], 2) . '</div>
+                    <div class="stat-number">Rp ' . number_format($stats['avg_price'] ?? 0, 2) . '</div>
                     <div class="stat-label">Harga Rata-rata</div>
                 </div>
             </div>
@@ -336,16 +342,19 @@ switch ($reportType) {
         
     default: // overview report
         // Get overview data
-        $statsSql = "SELECT 
+        $statsSql = "SELECT
                         COUNT(*) as total_games,
                         SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_games,
                         SUM(CASE WHEN is_active = 0 THEN 1 ELSE 0 END) as inactive_games,
                         AVG(price) as avg_price,
                         MIN(price) as min_price,
                         MAX(price) as max_price
-                     FROM games";
-        
+                     FROM games
+                     WHERE created_at BETWEEN :start_date AND :end_date";
+
         $statsStmt = $pdo->prepare($statsSql);
+        $statsStmt->bindParam(':start_date', $startDate);
+        $statsStmt->bindParam(':end_date', $endDate);
         $statsStmt->execute();
         $stats = $statsStmt->fetch();
         
@@ -366,7 +375,7 @@ switch ($reportType) {
                     <div class="stat-label">Data Game Tidak Aktif</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">Rp ' . number_format($stats['avg_price'], 2) . '</div>
+                    <div class="stat-number">Rp ' . number_format($stats['avg_price'] ?? 0, 2) . '</div>
                     <div class="stat-label">Harga Rata-rata</div>
                 </div>
             </div>
@@ -376,38 +385,43 @@ switch ($reportType) {
             <div class="section-title">Rentang Harga</div>
             <div class="stats-container">
                 <div class="stat-card">
-                    <div class="stat-number">Rp ' . number_format($stats['min_price'], 2) . '</div>
+                    <div class="stat-number">Rp ' . number_format($stats['min_price'] ?? 0, 2) . '</div>
                     <div class="stat-label">Minimum</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">Rp ' . number_format($stats['avg_price'], 2) . '</div>
+                    <div class="stat-number">Rp ' . number_format($stats['avg_price'] ?? 0, 2) . '</div>
                     <div class="stat-label">Rata-rata</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">Rp ' . number_format($stats['max_price'], 2) . '</div>
+                    <div class="stat-number">Rp ' . number_format($stats['max_price'] ?? 0, 2) . '</div>
                     <div class="stat-label">Maksimum</div>
                 </div>
             </div>
         </div>';
         
         // Get genre distribution
-        $genreSql = "SELECT 
+        $genreSql = "SELECT
                         genre,
                         COUNT(*) as count,
                         SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_count
                      FROM games
+                     WHERE created_at BETWEEN :start_date AND :end_date
                      GROUP BY genre
                      ORDER BY count DESC
                      LIMIT 5";
-        
+
         $genreStmt = $pdo->prepare($genreSql);
+        $genreStmt->bindParam(':start_date', $startDate);
+        $genreStmt->bindParam(':end_date', $endDate);
         $genreStmt->execute();
         $genreDistribution = $genreStmt->fetchAll();
-        
+
         // Get platform distribution - split comma-separated values
-        $platformSql = "SELECT platform, is_active FROM games";
+        $platformSql = "SELECT platform, is_active FROM games WHERE created_at BETWEEN :start_date AND :end_date";
 
         $platformStmt = $pdo->prepare($platformSql);
+        $platformStmt->bindParam(':start_date', $startDate);
+        $platformStmt->bindParam(':end_date', $endDate);
         $platformStmt->execute();
         $allPlatformRows = $platformStmt->fetchAll();
 

@@ -45,23 +45,27 @@ switch ($reportType) {
                     g.platform,
                     g.is_active,
                     g.created_at,
-                    COUNT(*) as times_featured
+                    COALESCE(featured.times_featured, 0) as times_featured
                  FROM games g
                  LEFT JOIN (
-                     SELECT game_id, COUNT(*) as count
+                     SELECT game_id, COUNT(*) as times_featured
                      FROM (
-                         SELECT id as game_id FROM games WHERE created_at BETWEEN :start_date AND :end_date
+                         SELECT id as game_id FROM games WHERE created_at BETWEEN :start_date1 AND :end_date1
                          UNION ALL
-                         SELECT id as game_id FROM games WHERE updated_at BETWEEN :start_date AND :end_date
+                         SELECT id as game_id FROM games WHERE updated_at BETWEEN :start_date2 AND :end_date2
                      ) as activity
                      GROUP BY game_id
                  ) as featured ON g.id = featured.game_id
-                 GROUP BY g.id
+                 WHERE g.created_at BETWEEN :start_date3 AND :end_date3
                  ORDER BY g.title";
 
         $stmt = $pdo->prepare($sql);
-        $stmt->bindParam(':start_date', $startDate);
-        $stmt->bindParam(':end_date', $endDate);
+        $stmt->bindParam(':start_date1', $startDate);
+        $stmt->bindParam(':end_date1', $endDate);
+        $stmt->bindParam(':start_date2', $startDate);
+        $stmt->bindParam(':end_date2', $endDate);
+        $stmt->bindParam(':start_date3', $startDate);
+        $stmt->bindParam(':end_date3', $endDate);
         $stmt->execute();
         $games = $stmt->fetchAll();
 
@@ -276,9 +280,12 @@ switch ($reportType) {
                         AVG(price) as avg_price,
                         MIN(price) as min_price,
                         MAX(price) as max_price
-                     FROM games";
+                     FROM games
+                     WHERE created_at BETWEEN :start_date AND :end_date";
 
         $statsStmt = $pdo->prepare($statsSql);
+        $statsStmt->bindParam(':start_date', $startDate);
+        $statsStmt->bindParam(':end_date', $endDate);
         $statsStmt->execute();
         $overviewStats = $statsStmt->fetch();
 
@@ -288,17 +295,22 @@ switch ($reportType) {
                         COUNT(*) as count,
                         SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_count
                      FROM games
+                     WHERE created_at BETWEEN :start_date AND :end_date
                      GROUP BY genre
                      ORDER BY count DESC";
 
         $genreStmt = $pdo->prepare($genreSql);
+        $genreStmt->bindParam(':start_date', $startDate);
+        $genreStmt->bindParam(':end_date', $endDate);
         $genreStmt->execute();
         $genreDistribution = $genreStmt->fetchAll();
 
         // Get platform distribution - split comma-separated values
-        $platformSql = "SELECT platform, is_active FROM games";
+        $platformSql = "SELECT platform, is_active FROM games WHERE created_at BETWEEN :start_date AND :end_date";
 
         $platformStmt = $pdo->prepare($platformSql);
+        $platformStmt->bindParam(':start_date', $startDate);
+        $platformStmt->bindParam(':end_date', $endDate);
         $platformStmt->execute();
         $allPlatformRows = $platformStmt->fetchAll();
 
@@ -439,7 +451,7 @@ document.getElementById('reportType').addEventListener('change', function() {
                 </div>
 
                 <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white">
-                    <div class="text-3xl font-bold">Rp <?php echo number_format($overviewStats['avg_price'], 2); ?></div>
+                    <div class="text-3xl font-bold">Rp <?php echo number_format($overviewStats['avg_price'] ?? 0, 2); ?></div>
                     <div class="text-purple-100 mt-1">Average Price</div>
                 </div>
             </div>
@@ -449,15 +461,15 @@ document.getElementById('reportType').addEventListener('change', function() {
                 <h3 class="font-bold text-gray-800 mb-4">Price Range</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-gray-800">Rp <?php echo number_format($overviewStats['min_price'], 2); ?></div>
+                        <div class="text-2xl font-bold text-gray-800">Rp <?php echo number_format($overviewStats['min_price'] ?? 0, 2); ?></div>
                         <div class="text-sm text-gray-500">Minimum</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-gray-800">Rp <?php echo number_format($overviewStats['avg_price'], 2); ?></div>
+                        <div class="text-2xl font-bold text-gray-800">Rp <?php echo number_format($overviewStats['avg_price'] ?? 0, 2); ?></div>
                         <div class="text-sm text-gray-500">Average</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-gray-800">Rp <?php echo number_format($overviewStats['max_price'], 2); ?></div>
+                        <div class="text-2xl font-bold text-gray-800">Rp <?php echo number_format($overviewStats['max_price'] ?? 0, 2); ?></div>
                         <div class="text-sm text-gray-500">Maximum</div>
                     </div>
                 </div>
@@ -521,7 +533,7 @@ document.getElementById('reportType').addEventListener('change', function() {
                 </div>
 
                 <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl p-6 text-white">
-                    <div class="text-3xl font-bold">Rp <?php echo number_format($totalRevenueEstimate, 2); ?></div>
+                    <div class="text-3xl font-bold">Rp <?php echo number_format($totalRevenueEstimate ?? 0, 2); ?></div>
                     <div class="text-yellow-100 mt-1">Potential Revenue</div>
                 </div>
 
@@ -551,7 +563,7 @@ document.getElementById('reportType').addEventListener('change', function() {
                             <tr class="hover:bg-gray-100">
                                 <td class="px-4 py-3 text-sm"><?php echo $game['id']; ?></td>
                                 <td class="px-4 py-3 text-sm font-medium"><?php echo htmlspecialchars($game['title']); ?></td>
-                                <td class="px-4 py-3 text-sm font-medium">Rp <?php echo number_format($game['price'], 2); ?></td>
+                                <td class="px-4 py-3 text-sm font-medium">Rp <?php echo number_format($game['price'] ?? 0, 2); ?></td>
                                 <td class="px-4 py-3 text-sm"><?php echo htmlspecialchars($game['genre']); ?></td>
                                 <td class="px-4 py-3 text-sm"><?php echo htmlspecialchars($game['platform']); ?></td>
                                 <td class="px-4 py-3">
@@ -586,7 +598,7 @@ document.getElementById('reportType').addEventListener('change', function() {
                             <td class="px-6 py-4 font-medium text-gray-800"><?php echo htmlspecialchars($game['title']); ?></td>
                             <td class="px-6 py-4 text-sm text-gray-600"><?php echo htmlspecialchars($game['genre']); ?></td>
                             <td class="px-6 py-4 text-sm text-gray-600"><?php echo htmlspecialchars($game['platform']); ?></td>
-                            <td class="px-6 py-4 text-sm font-medium">Rp <?php echo number_format($game['price'], 2); ?></td>
+                            <td class="px-6 py-4 text-sm font-medium">Rp <?php echo number_format($game['price'] ?? 0, 2); ?></td>
                             <td class="px-6 py-4">
                                 <span class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full
                                     <?php echo $game['is_active'] ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?>">
@@ -619,17 +631,17 @@ document.getElementById('reportType').addEventListener('change', function() {
                 </div>
 
                 <div class="bg-gray-50 rounded-xl p-4 text-center">
-                    <div class="text-2xl font-bold text-gray-700">Rp <?php echo number_format($stats['avg_price'], 2); ?></div>
+                    <div class="text-2xl font-bold text-gray-700">Rp <?php echo number_format($stats['avg_price'] ?? 0, 2); ?></div>
                     <div class="text-sm text-gray-600">Avg Price</div>
                 </div>
 
                 <div class="bg-yellow-50 rounded-xl p-4 text-center">
-                    <div class="text-2xl font-bold text-yellow-700">Rp <?php echo number_format($stats['min_price'], 2); ?></div>
+                    <div class="text-2xl font-bold text-yellow-700">Rp <?php echo number_format($stats['min_price'] ?? 0, 2); ?></div>
                     <div class="text-sm text-yellow-600">Min Price</div>
                 </div>
 
                 <div class="bg-purple-50 rounded-xl p-4 text-center">
-                    <div class="text-2xl font-bold text-purple-700">Rp <?php echo number_format($stats['max_price'], 2); ?></div>
+                    <div class="text-2xl font-bold text-purple-700">Rp <?php echo number_format($stats['max_price'] ?? 0, 2); ?></div>
                     <div class="text-sm text-purple-600">Max Price</div>
                 </div>
             </div>
@@ -693,8 +705,8 @@ document.getElementById('reportType').addEventListener('change', function() {
                             <td class="px-6 py-4 text-sm text-gray-600"><?php echo htmlspecialchars($item['platform']); ?></td>
                             <td class="px-6 py-4 text-sm font-medium"><?php echo $item['total_count']; ?></td>
                             <td class="px-6 py-4 text-sm font-medium"><?php echo $item['active_count']; ?></td>
-                            <td class="px-6 py-4 text-sm">Rp <?php echo number_format($item['avg_price'], 2); ?></td>
-                            <td class="px-6 py-4 text-sm font-medium">Rp <?php echo number_format($item['avg_price'] * $item['active_count'], 2); ?></td>
+                            <td class="px-6 py-4 text-sm">Rp <?php echo number_format($item['avg_price'] ?? 0, 2); ?></td>
+                            <td class="px-6 py-4 text-sm font-medium">Rp <?php echo number_format(($item['avg_price'] ?? 0) * ($item['active_count'] ?? 0), 2); ?></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -720,16 +732,24 @@ document.getElementById('reportType').addEventListener('change', function() {
                 </div>
 
                 <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl p-6 text-white">
-                    <div class="text-3xl font-bold">Rp <?php echo number_format(array_sum(array_map(function($game) {
-                        return $game['is_active'] ? floatval($game['price']) : 0;
-                    }, $popularityReport)), 2); ?></div>
+                    <?php
+                    $potentialRevenue = (float)array_sum(array_map(function($game) {
+                        return $game['is_active'] ? floatval($game['price'] ?? 0) : 0;
+                    }, $popularityReport));
+                    ?>
+                    <div class="text-3xl font-bold">Rp <?php echo number_format($potentialRevenue, 2); ?></div>
                     <div class="text-yellow-100 mt-1">Potential Revenue</div>
                 </div>
 
                 <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white">
-                    <div class="text-3xl font-bold">Rp <?php echo number_format(count($popularityReport) > 0 ? array_sum(array_map(function($game) {
-                        return $game['is_active'] ? floatval($game['price']) : 0;
-                    }, $popularityReport)) / count(array_filter($popularityReport, function($game) { return $game['is_active'] == 1; })) : 0, 2); ?></div>
+                    <?php
+                    $activeGamesCount = count(array_filter($popularityReport, function($game) { return $game['is_active'] == 1; }));
+                    $revenueSum = (float)array_sum(array_map(function($game) {
+                        return $game['is_active'] ? floatval($game['price'] ?? 0) : 0;
+                    }, $popularityReport));
+                    $avgRevenue = $activeGamesCount > 0 ? $revenueSum / $activeGamesCount : 0;
+                    ?>
+                    <div class="text-3xl font-bold">Rp <?php echo number_format($avgRevenue, 2); ?></div>
                     <div class="text-purple-100 mt-1">Avg Revenue per Active Game</div>
                 </div>
             </div>
@@ -793,7 +813,7 @@ document.getElementById('reportType').addEventListener('change', function() {
                             <td class="px-6 py-4 font-medium text-gray-800"><?php echo htmlspecialchars($game['title']); ?></td>
                             <td class="px-6 py-4 text-sm text-gray-600"><?php echo htmlspecialchars($game['genre']); ?></td>
                             <td class="px-6 py-4 text-sm text-gray-600"><?php echo htmlspecialchars($game['platform']); ?></td>
-                            <td class="px-6 py-4 text-sm font-medium">Rp <?php echo number_format($game['price'], 2); ?></td>
+                            <td class="px-6 py-4 text-sm font-medium">Rp <?php echo number_format($game['price'] ?? 0, 2); ?></td>
                             <td class="px-6 py-4">
                                 <span class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full
                                     <?php echo $game['is_active'] ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?>">

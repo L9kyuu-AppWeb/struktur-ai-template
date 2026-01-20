@@ -153,7 +153,7 @@ switch ($reportType) {
         
     default: // overview report
         // Overview report data
-        $sql = "SELECT 
+        $sql = "SELECT
                     id,
                     title,
                     price,
@@ -163,15 +163,18 @@ switch ($reportType) {
                     created_at,
                     updated_at
                  FROM games
+                 WHERE created_at BETWEEN :start_date AND :end_date
                  ORDER BY title";
-        
+
         $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':start_date', $startDate);
+        $stmt->bindParam(':end_date', $endDate);
         $stmt->execute();
         $games = $stmt->fetchAll();
-        
+
         // Write headers
         fputcsv($output, ['ID', 'Title', 'Price', 'Genre', 'Platform', 'Status', 'Created At', 'Updated At']);
-        
+
         // Write data rows
         foreach ($games as $game) {
             fputcsv($output, [
